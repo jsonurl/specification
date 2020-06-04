@@ -40,6 +40,7 @@ in [RFC5234][2].
 The latest version of this document may be found here:
 https://github.com/jsonurl/specification/
 
+
 # 2. Grammar
 [RFC8259][1] describes the JSON data model, which includes objects, arrays,
 and value literals. This document defines a new grammar for the JSON data
