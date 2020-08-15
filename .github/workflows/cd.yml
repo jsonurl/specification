@@ -1,0 +1,38 @@
+#
+# publish the spec to GitHub pages
+#
+
+name: cd
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    if: github.repository_owner == 'jsonurl'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout main
+      uses: actions/checkout@v2
+      with:
+        path: 'main'
+        ref: 'refs/heads/master'
+    - name: Checkout gh-pages
+      uses: actions/checkout@v2
+      with:
+        path: 'ghpages'
+        ref: 'refs/heads/gh-pages'
+    - name: Copying file(s)
+      run: cp main/README.md ghpages/index.md
+      shell: bash
+    - name: Commiting gh-pages
+      run: |
+          cd ghpages ;
+          git config user.name github-actions ;
+          git config user.email github-actions@github.com ;
+          git add . ;
+          git commit -m 'doc: Update by action ${{ github.workflow }}.${{ github.job }}/${{ github.run_id }} on behalf of ${{ github.actor }} for ${{ github.event_name }} ${{ github.sha }}' ;
+          git push ;
+

@@ -184,7 +184,7 @@ likely make it more difficult for the human eye to parse.  Therefore,
 unescaped whitespace MUST NOT be present in JSON&#x2192;URL text. Escaped
 whitespace MAY be present, however, it is always considered significant.
 
-## 2.x x-www-form-urlencoded
+## 2.7 x-www-form-urlencoded
 JSON&#x2192;URL text is designed to play well with [x-www-form-urlencoded][6]
 data. JSON&#x2192;URL text MUST percent-encode `&` and `=` characters.
 This allows one or more form variables to be standalone JSON&#x2192;URL text. 
