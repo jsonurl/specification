@@ -1,4 +1,4 @@
-#1. About
+# 1. About
 [RFC8259][1] describes the JSON interchange format, which is widely used in
 application-level protocols including RESTful APIs. It is common for
 applications to request resources via the HTTP POST method with JSON entities
@@ -22,7 +22,7 @@ powerful data model, and it's very well known.
 JSON&#x2192;URL defines a text format for the JSON data model suitable for
 use within a [URL][10]/[URI][4].
 
-##1.1 Terminology
+## 1.1 Terminology
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
 "OPTIONAL" in this document are to be interpreted as described in
@@ -32,16 +32,16 @@ The terms "JSON text", "value", "object", "array", "number", "string",
 "name", and "member" in this document are to be interpreted as described
 in [RFC8259][1].
 
-##1.2 Requirements Notation
+## 1.2 Requirements Notation
 This document uses the Augmented Backus-Naur Form (ABNF) notation described
 in [RFC5234][2].
 
-##1.3 Latest Version
+## 1.3 Latest Version
 The latest version of this document may be found here:
 https://github.com/jsonurl/specification/
 
 
-#2. Grammar
+# 2. Grammar
 [RFC8259][1] describes the JSON data model, which includes objects, arrays,
 and value literals. This document defines a new grammar for the JSON data
 model called JSON&#x2192;URL. It also borrows heavily from RFC8259 so
@@ -76,7 +76,7 @@ array has no members.
 
 Whitespace MUST NOT be used.
 
-##2.1 Values
+## 2.1 Values
 A JSON&#x2192;URL value MUST be a composite, number, string, or one of three
 literal names. The three literals and the number production are defined
 exactly as in RFC8259. Object, array, and string are defined in the
@@ -84,7 +84,7 @@ following sections of this document.
 
 	value = false / null / true / composite / number / string
 	
-##2.2 Composites
+## 2.2 Composites
 A composite value is an array, object, or the `empty-composite` value
 which represents an array/object with no members. In JSON&#x2192;URL, an
 empty array and empty object are indistinguishable. This constitutes the
@@ -94,7 +94,7 @@ RFC8259.
 	composite       = empty-composite / object / array
 	empty-composite = begin-composite end-composite ; ()
 
-##2.3 Objects
+## 2.3 Objects
 An object structure is represented as a pair of parentheses surrounding one
 or more name/value pairs (or members). A name is a string. A single colon
 comes after each name, separating the name from the value. A single comma
@@ -103,7 +103,7 @@ separates a value from a following name.
 	object = begin-composite member *( value-separator member ) end-composite
 	member = string name-separator value
 
-##2.4 Arrays
+## 2.4 Arrays
 An array structure is represented as a pair of parentheses surrounding one
 or more values. Multiple values are separated by commas.
 
@@ -112,7 +112,7 @@ or more values. Multiple values are separated by commas.
 As in RFC8259 there is no requirement that the values in an array be of the
 same type.
 
-##2.5 Strings
+## 2.5 Strings
 Though semantically equivalent to `string` as defined in RFC8259
 the grammar for a JSON&#x2192;URL string is quite different. A JSON&#x2192;URL
 string MAY be surrounded by single-quotes (a.k.a. apostrophes), however, it is
@@ -170,13 +170,13 @@ structural meaning. Quoted strings need not encode structural characters.
     hexdig        = digit / %x41-46    ; A-F  hexadecimal digits
     digit         = %x30-39            ; 0-9  digits
 
-##2.6 Numbers
+## 2.6 Numbers
 Numbers are represented exactly as defined in RFC8259, Section 6. Note that
 when used in a number the `plus` character (U+002B) is literal and MUST NOT
 be interpreted by a JSON&#x2192;URL parser as a space character (as it would be
 in a string literal).
 
-##2.7 Whitespace
+## 2.7 Whitespace
 The grammar defined in RFC8259 allows for "insignificant whitespace" as it
 can make it easier for the human eye to parse JSON text. However,
 unescaped whitespace is not allowed in a URL and escaped whitespace would
@@ -184,18 +184,18 @@ likely make it more difficult for the human eye to parse.  Therefore,
 unescaped whitespace MUST NOT be present in JSON&#x2192;URL text. Escaped
 whitespace MAY be present, however, it is always considered significant.
 
-##2.8 x-www-form-urlencoded
+## 2.8 x-www-form-urlencoded
 JSON&#x2192;URL text is designed to play well with [x-www-form-urlencoded][6]
 data. JSON&#x2192;URL text MUST percent-encode literal `&` and `=` characters.
 This allows one or more traditional HTML form variables to be standalone
 JSON&#x2192;URL text.
 
-##2.9 Optional Syntaxes
+## 2.9 Optional Syntaxes
 A JSON&#x2192;URL parser implementation MAY support additional syntax options.
 Implementations SHOULD default to the grammar described above and only allow an
 alternate syntax when explicitly enabled.
 
-###2.9.1 Implied Arrays
+### 2.9.1 Implied Arrays
 If both a sender and its receiver agree a priori that the top-level value is an
 array then a parser MAY accept JSON&#x2192;URL text that omits the first
 `begin-composite` and last `end-composite` characters.
@@ -209,7 +209,7 @@ array rather than the `empty-composite`.
 `implied-array` is OPTIONAL. A JSON&#x2192;URL parser is not required to
 support it.
 
-###2.9.2 Implied Objects
+### 2.9.2 Implied Objects
 If both a sender and its receiver agree a priori that the top-level value is an
 object then a parser MAY accept JSON&#x2192;URL text that omits the first
 `begin-composite` and last `end-composite` characters.
@@ -223,7 +223,7 @@ object rather than the `empty-composite`.
 `implied-object` is OPTIONAL. A JSON&#x2192;URL parser is not required to
 support it.
 
-###2.9.3 x-www-form-urlencoded Arrays and Objects
+### 2.9.3 x-www-form-urlencoded Arrays and Objects
 A parser MAY accept x-www-form-urlencoded style separators as structural
 characters for a top-level array or object.
 
@@ -255,9 +255,9 @@ JSON&#x2192;URL text to meet the goal outlined in section 2.7.
 `wfu-composite` and `wfu-implied-composite` are OPTIONAL. A JSON&#x2192;URL
 parser is not required to support them.
 
-#3. Examples
+# 3. Examples
 Here are a few examples.
-##3.1 String Literal
+## 3.1 String Literal
 Here are some string literals:
 
     word
@@ -267,7 +267,7 @@ Here are some string literals:
     'true'
     '42'
 
-##3.2 Number Literal
+## 3.2 Number Literal
 Here are some number literals:
 
     0
@@ -276,14 +276,14 @@ Here are some number literals:
     -3e4
     42
 
-##3.3 Object
+## 3.3 Object
 Here are some objects:
 
     (key:value)
     (Hello:World!)
     (key:value,nested:(key:value))
 
-##3.4 Array
+## 3.4 Array
 Here are some arrays:
 
     (1)
@@ -292,7 +292,7 @@ Here are some arrays:
     (a,b,(nested,array))
     (array,of,objects,(object:1),(object:2))
     
-##3.5 Implied Array
+## 3.5 Implied Array
 Here are some implied arrays:
 
     1
@@ -301,14 +301,14 @@ Here are some implied arrays:
     a,b,(nested,array)
     array,with,objects,(object:1),(object:2)
 
-##3.6 Implied Object
+## 3.6 Implied Object
 Here are some implied objects:
 
     key:value
     Hello:World!
     key:value,nested:(key:value)
 
-##3.7 x-www-form-urlencoded Implied Array
+## 3.7 x-www-form-urlencoded Implied Array
 Here are some implied arrays that make use of x-www-form-urlencoded style
 separators:
 
@@ -318,7 +318,7 @@ separators:
     a&b&(nested,array)
     array&with&objects&(object:1)&(object:2)
     
-##3.8 x-www-form-urlencoded Implied Object
+## 3.8 x-www-form-urlencoded Implied Object
 Here are some implied objects that make use of x-www-form-urlencoded style
 separators:
 
