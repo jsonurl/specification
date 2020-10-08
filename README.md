@@ -94,25 +94,25 @@ RFC8259.
 	composite       = empty-composite / object / array
 	empty-composite = begin-composite end-composite ; ()
 
-## 2.2 Objects
+## 2.3 Objects
 An object structure is represented as a pair of parentheses surrounding one
 or more name/value pairs (or members). A name is a string. A single colon
 comes after each name, separating the name from the value. A single comma
 separates a value from a following name.
 
-	object = begin-composite 1*( member *( value-separator member ) ) end-composite
+	object = begin-composite member *( value-separator member ) end-composite
 	member = string name-separator value
 
-## 2.3 Arrays
+## 2.4 Arrays
 An array structure is represented as a pair of parentheses surrounding one
 or more values. Multiple values are separated by commas.
 
-	array = begin-composite 1*( value *( value-separator value ) ) end-composite
+	array = begin-composite value *( value-separator value ) end-composite
 
 As in RFC8259 there is no requirement that the values in an array be of the
 same type.
 
-## 2.4 Strings
+## 2.5 Strings
 Though semantically equivalent to `string` as defined in RFC8259
 the grammar for a JSON&#x2192;URL string is quite different. A JSON&#x2192;URL
 string MAY be surrounded by single-quotes (a.k.a. apostrophes), however, it is
@@ -170,13 +170,13 @@ structural meaning. Quoted strings need not encode structural characters.
     hexdig        = digit / %x41-46    ; A-F  hexadecimal digits
     digit         = %x30-39            ; 0-9  digits
 
-## 2.5 Numbers
+## 2.6 Numbers
 Numbers are represented exactly as defined in RFC8259, Section 6. Note that
 when used in a number the `plus` character (U+002B) is literal and MUST NOT
 be interpreted by a JSON&#x2192;URL parser as a space character (as it would be
 in a string literal).
 
-## 2.6 Whitespace
+## 2.7 Whitespace
 The grammar defined in RFC8259 allows for "insignificant whitespace" as it
 can make it easier for the human eye to parse JSON text. However,
 unescaped whitespace is not allowed in a URL and escaped whitespace would
@@ -184,10 +184,76 @@ likely make it more difficult for the human eye to parse.  Therefore,
 unescaped whitespace MUST NOT be present in JSON&#x2192;URL text. Escaped
 whitespace MAY be present, however, it is always considered significant.
 
-## 2.7 x-www-form-urlencoded
+## 2.8 x-www-form-urlencoded
 JSON&#x2192;URL text is designed to play well with [x-www-form-urlencoded][6]
-data. JSON&#x2192;URL text MUST percent-encode `&` and `=` characters.
-This allows one or more form variables to be standalone JSON&#x2192;URL text. 
+data. JSON&#x2192;URL text MUST percent-encode literal `&` and `=` characters.
+This allows one or more traditional HTML form variables to be standalone
+JSON&#x2192;URL text.
+
+## 2.9 Optional Syntaxes
+A JSON&#x2192;URL parser implementation MAY support additional syntax options.
+Implementations SHOULD default to the grammar described above and only allow an
+alternate syntax when explicitly enabled.
+
+### 2.9.1 Implied Arrays
+If both a sender and its receiver agree a priori that the top-level value is an
+array then a parser MAY accept JSON&#x2192;URL text that omits the first
+`begin-composite` and last `end-composite` characters.
+
+    implied-array = [value] *( value-separator value )
+
+Note that, unlike an `array`, an `implied-array` may be empty (i.e. contain
+zero values). There is no ambiguity in this case and the parse result MAY be an
+array rather than the `empty-composite`.
+
+`implied-array` is OPTIONAL. A JSON&#x2192;URL parser is not required to
+support it.
+
+### 2.9.2 Implied Objects
+If both a sender and its receiver agree a priori that the top-level value is an
+object then a parser MAY accept JSON&#x2192;URL text that omits the first
+`begin-composite` and last `end-composite` characters.
+
+    implied-object = [member] *( value-separator member )
+
+Note that, unlike an `object`, an `implied-object` may be empty (i.e. contain
+zero members). There is no ambiguity in this case and the parse result MAY be an
+object rather than the `empty-composite`.
+
+`implied-object` is OPTIONAL. A JSON&#x2192;URL parser is not required to
+support it.
+
+### 2.9.3 x-www-form-urlencoded Arrays and Objects
+A parser MAY accept x-www-form-urlencoded style separators as structural
+characters for a top-level array or object.
+
+    wfu-name-separator      = %x3D  ; = equal 
+    wfu-value-separator     = %x26  ; & ampersand
+    
+    wfu-composite           = empty-composite / wfu-object / wfu-array
+
+    wfu-object = begin-composite wfu-member *( wfu-value-separator wfu-member ) end-composite
+    wfu-member = string wfu-name-separator value
+    
+    wfu-array  = begin-composite value *( wfu-value-separator value ) end-composite
+
+This may be combined with an implied array or object to form a URL query
+string that is a syntactically valid, traditional HTML form data query
+string.
+
+    wfu-implied-composite = wfu-implied-object / wfu-implied-array
+
+    wfu-implied-object    = [wfu-member] *( wfu-value-separator wfu-member )
+    
+    wfu-implied-array     = [value] *( wfu-value-separator value )
+
+Note that `wfu-composite` and `wfu-implied-composite` indirectly reference
+`qchar`, which allows unencoded literal `,` and `:` characters but requires
+literal `&` and `=` characters to be encoded. This is intentional, and allows
+JSON&#x2192;URL text to meet the goal outlined in section 2.7.  
+
+`wfu-composite` and `wfu-implied-composite` are OPTIONAL. A JSON&#x2192;URL
+parser is not required to support them.
 
 # 3. Examples
 Here are a few examples.
@@ -210,14 +276,14 @@ Here are some number literals:
     -3e4
     42
 
-## 3.2 Object
+## 3.3 Object
 Here are some objects:
 
     (key:value)
     (Hello:World!)
     (key:value,nested:(key:value))
 
-## 3.2 Array
+## 3.4 Array
 Here are some arrays:
 
     (1)
@@ -225,6 +291,40 @@ Here are some arrays:
     (a,b,c)
     (a,b,(nested,array))
     (array,of,objects,(object:1),(object:2))
+    
+## 3.5 Implied Array
+Here are some implied arrays:
+
+    1
+    1,2,3
+    a,b,c
+    a,b,(nested,array)
+    array,with,objects,(object:1),(object:2)
+
+## 3.6 Implied Object
+Here are some implied objects:
+
+    key:value
+    Hello:World!
+    key:value,nested:(key:value)
+
+## 3.7 x-www-form-urlencoded Implied Array
+Here are some implied arrays that make use of x-www-form-urlencoded style
+separators:
+
+    1
+    1&2&3
+    a&b&c
+    a&b&(nested,array)
+    array&with&objects&(object:1)&(object:2)
+    
+## 3.8 x-www-form-urlencoded Implied Object
+Here are some implied objects that make use of x-www-form-urlencoded style
+separators:
+
+    key=value
+    Hello=World!
+    key=value&nested=(key:value)
 
 [1]: https://tools.ietf.org/html/rfc8259        "RFC8259"
 [2]: https://tools.ietf.org/html/rfc5234        "RFC5234"
