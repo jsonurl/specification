@@ -192,8 +192,10 @@ JSON&#x2192;URL text.
 
 ## 2.9 Optional Syntaxes
 A JSON&#x2192;URL parser implementation MAY support additional syntax options.
-Implementations SHOULD default to the grammar described above and only allow an
-alternate syntax when explicitly enabled.
+Implementations SHOULD default to the grammar described above and only allow
+an alternate syntax when explicitly enabled. Each section defines a syntax
+option as a modification of previously defined grammar productions and/or
+definition of new ones.
 
 ### 2.9.1 Implied Arrays
 If both a sender and its receiver agree a priori that the top-level value is an
@@ -257,8 +259,8 @@ parser is not required to support them.
 
 ### 2.9.4 Implied Object Missing Values
 If a parser supports `implied-object` and/or `wfu-implied-object` then it MAY
-accept JSON&#x2192;URL text that omits name-separators and values for a
-top-level implied object.
+accept JSON&#x2192;URL text where values (and their respective name-separators)
+are omitted for the top-level implied object.
 
     mv-implied-object = [mv-member] *( value-separator mv-member )
     mv-member = string [name-separator value]
@@ -270,6 +272,81 @@ top-level implied object.
 JSON&#x2192;URL parser is not required to support them. A JSON&#x2192;URL
 parser implementation SHOULD provide a mechanism which allows the caller to
 supply a default value.
+
+### 2.9.5 Empty Objects and Arrays
+Section 2.2 defines the empty composite and outlines that there is no
+distinction between an empty object and empty array. A parser MAY
+distinguish between the two by defining `composite` as follows.
+
+    composite       = empty-object / empty-array / object / array
+    empty-array     = begin-composite end-composite ; ()
+    empty-object    = begin-composite name-separator end-composite ; (:)
+
+### 2.9.6 Address Bar Query String Friendly
+A web browser address bar will often percent encode characters even when it's
+not necessary to do so. In particular, apostrophes are encoded despite
+the fact that they are identified by RFC3986 as `sub-delims`. This
+interferes with the JSON&#x2192;URL string encoding strategy outlined above.
+There can't be a meaningful difference between `'` and `%x27` if the browser
+changes one to the other at its own discretion.
+
+The address bar query string friendly (AQF) syntax allows JSON&#x2192;URL
+to work in this context. It relies on escaping rather than encoding (or
+quoting) to distinguish between characters that are part of a string
+and characters that are structural or form one of the other literal values.
+Except for ampersand (`%x26`), equals (`%x3D`), and plus (`%x2B`),
+a parser MUST decode each UNICODE codepoint before it's evaluated, which will
+ensure the browser's encoding preferences do not affect how a a JSON&#x2192;URL
+parser interprets the character sequence.
+
+The AQF syntax modifies the `string` production as follows.
+
+    string    = 1*char
+    
+    char      = uchar / apos / esc-seq
+    
+    esc-seq   = escape eval
+    
+    escape    = %x21               ; !
+    
+    eval      = struct-char
+              / digit
+              / %x2B               ; +    plus
+              / %x2D               ; -    dash
+              / %x21               ; !    exclamation point
+              / %x65               ; e    the empty string
+              / %x66               ; f    lowercase f
+              / %x6E               ; n    lowercase n
+              / %x74               ; t    lowercase t
+
+An escape sequence begins with an exclamation point and MUST be following by
+another character, the escape value. The set of valid escape values is
+defined by `eval`.
+
+* Structural characters MUST be escaped when used in a string.
+* A leading digit or dash MUST be escaped in a string that would otherwise
+be interpreted as a number. Non-leading digits or dash MAY be escaped but
+there is no benefit in doing so.
+* A plus MUST be escaped
+* Exclamation point itself MUST be escaped
+* A leading lowercase `f` MUST be escaped in a string that would otherwise
+be interpreted as `false`.
+* A leading lowercase `n` MUST be escaped in a string that would otherwise
+be interpreted as `null`.
+* A leading lowercase `t` MUST be escaped in a string that would otherwise
+be interpreted as `true.`
+* The empty string MUST be represented as `!e`
+
+Note that, like any other octet, the exclamation point escape character itself
+and/or `eval` may be percent encoded.
+
+Because browsers do recognize a meaningful difference between literal and
+encoded ampersand and equals, when used in a query string, the AQF syntax
+retains that distinction. This allows for it to continue to work with
+x-www-form-urlencoded arrays and objects.
+
+The AQF syntax is OPTIONAL. A JSON&#x2192;URL parser is not required to
+support it.
 
 # 3. Examples
 Here are a few examples.
@@ -348,6 +425,14 @@ Here are some implied objects with missing values:
     key
     key,Hello=World!
     key=value&marker&nested=(key:value)
+    
+## 3.9 Address Bar Query String Friendly
+Here are some AQF values:
+
+    (Hello:World!!)
+    (key:value,strings:(a,!true,c,!3.14,!-5))
+    (1,2,3,Hello!,+World!!)
+    (a,!e,c)
 
 [1]: https://tools.ietf.org/html/rfc8259        "RFC8259"
 [2]: https://tools.ietf.org/html/rfc5234        "RFC5234"
@@ -359,6 +444,4 @@ Here are some implied objects with missing values:
 [8]: https://tools.ietf.org/html/rfc3986#section-2.1 "RFC3986, Section 2.1."
 [9]: https://tools.ietf.org/html/rfc3986#section-2 "RFC3986, Section 2."
 [10]: https://tools.ietf.org/html/rfc1738        "RFC1738"
-
-
-
+[11]: https://tools.ietf.org/html/rfc8259#section-6 "RFC8259, Section 6."
