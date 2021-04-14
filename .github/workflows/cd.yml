@@ -7,7 +7,7 @@ name: cd
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   publish:
@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: 'main'
-        ref: 'refs/heads/master'
+        ref: 'refs/heads/main'
     - name: Checkout gh-pages
       uses: actions/checkout@v2
       with:
