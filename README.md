@@ -159,7 +159,7 @@ structural meaning. Quoted strings need not encode structural characters.
     apos          = %x27               ; '    single quote/apostrophe
     
     struct-char   = %x28               ; (    open paren
-                  / %x29               ; (    close paren
+                  / %x29               ; )    close paren
                   / %x2C               ; ,    comma
                   / %x3A               ; :    colon
 	
